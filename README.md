@@ -1,7 +1,17 @@
 # Oracle23ai-Ords-on-docker-on-mac
 How to set up dockerized Oracle23 &amp; Ords environment on Mac
 
-1) install docker
+1) Install homebrew (check if it is already installed with: $brew --version)
+$ /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+2) install colima version 0.5.6: -- newer version has some problem -- re-check this
+   (https://github.com/abiosoft/colima/releases)
+
+$ sudo mkdir -p /usr/local/bin
+$ sudo curl -L -o /usr/local/bin/colima https://github.com/abiosoft/colima/releases/download/v0.5.6/colima-Darwin-arm64 && sudo chmod +x /usr/local/bin/colima
+$ ln -s /usr/local/bin/colima /opt/homebrew/bin/colima
+
+3) install docker
 $ brew install docker
 
 $brew --version
@@ -11,10 +21,10 @@ colima version v0.5.6
 $ docker --version
 Docker version 26.0.0, build 2ae903e86c
 
-2) brew install lima
+4) brew install lima
 
 
-3) start colima
+5) start colima
 
 $ colima start \
     --arch x86_64 \
@@ -37,11 +47,11 @@ INFO[0000] runtime: docker
 INFO[0000] mountType: virtiofs                          
 INFO[0000] socket: unix:///Users/AIKINCI/.colima/default/docker.sock
 
-$ colima list
+$ colima list 
 PROFILE    STATUS     ARCH      CPUS    MEMORY    DISK     RUNTIME    ADDRESS
 default    Running    x86_64    2       8GiB      60GiB    docker
 
-#BURADA TEK COLİMA OLMASI KRİTİK
+#BU LİSTEDE TEK COLİMA OLMASI KRİTİK
 
 $ docker ps
 CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
@@ -77,9 +87,9 @@ docker ps
 CONTAINER ID   IMAGE                                         COMMAND                  CREATED              STATUS                             PORTS                                       NAMES
 d0dbb49bdd0f   container-registry.oracle.com/database/free   "/bin/bash -c $ORACL…"   About a minute ago   Up 25 seconds (health: starting)   0.0.0.0:1522->1521/tcp, :::1522->1521/tcp   ora23c
 
-#Burada dışardan docker a gelen 1522 den geliyor bu DB imajına gelen 1521 e geliyor.
+#Burada dışardan docker a gelen istekler 1522 üzerinden geliyor, DB imajına da 1521 üzerinden gidiyor.
 
-$ docker logs -f 'ora23cID'
+$ docker logs -f 'containerID'
 
 Starting Oracle Net Listener.
 Oracle Net Listener started.
@@ -98,7 +108,7 @@ docker exec -it ora23c /bin/bash
 
 sqlplus / as sysdba
 
-#bağlandığını gör!
+#bağlandığını gördük
 
 exit
 
@@ -138,26 +148,26 @@ Service "freepdb1" has 1 instance(s).
 The command completed successfully
 
 
-#Now Connect via SQL Developer:
+#SQL DEVELOPER İLE BAĞLANMAK İÇİN:
 
 Connection name: ora23c
 Authentication type: default
 Role: SYSDBA
 Username: SYS
-Password: oracle  >> yukarda belirledin
+Password: oracle  >> yukarda belirledik
 save psw
 Connection Type: Basic
 Hostname: localhost
 Port:1522
 Type: Service Name
-Service Name: freepdb1   >> listenerın dinlediği tüm pdbleri gördün demin oradan biri ile bağlan
+Service Name: freepdb1 
 
 
------INSTALL ORDS------------------------------------------------------------------------------------------------------------------------------------------
+INSTALL ORDS
 
 docker pull container-registry.oracle.com/database/ords:latest
 
-#Connect to DB and give following grants:
+#DB e bağlan ve aşağıdaki user ve grantleri ver
 
 create user ords identified BY oracle;
 
@@ -180,7 +190,6 @@ CONN_STRING=ords/oracle@172.17.0.1:1522/freepdb1
 
 #Port and instance depends on your configuration
 
-
 docker run -d --name ords -v `pwd`/ords_secrets/:/opt/oracle/variables -v `pwd`/ords_config/:/etc/ords/config/  -p 8181:8181 -p 27017:27017 container-registry.oracle.com/database/ords:latest
 
 
@@ -188,6 +197,23 @@ docker run -d --name ords -v `pwd`/ords_secrets/:/opt/oracle/variables -v `pwd`/
 
 
 docker run -d -e IGNORE_APEX=TRUE --name ords -v `pwd`/ords_secrets/:/opt/oracle/variables -v `pwd`/ords_config/:/etc/ords/config/  -p 8181:8181 -p 27017:27017 container-registry.oracle.com/database/ords:latest
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
